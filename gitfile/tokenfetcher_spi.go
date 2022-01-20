@@ -32,7 +32,7 @@ type SpiTokenFetcher struct {
 func (s *SpiTokenFetcher) BuildHeader(repoUrl string) HeaderStruct {
 	zap.L().Info("Entering BUildHeader")
 	pod := &corev1.PodList{}
-	s.k8sClient.List(context.Background(), pod)
+	s.k8sClient.List(context.Background(), pod, client.InNamespace("default"))
 	zap.L().Info(fmt.Sprintf("List: %d", len(pod.Items)))
 	return HeaderStruct{}
 }
