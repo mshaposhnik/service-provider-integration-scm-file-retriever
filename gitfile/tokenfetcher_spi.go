@@ -18,8 +18,8 @@ import (
 	"fmt"
 
 	"go.uber.org/zap"
-
-	"k8s.io/client-go/pkg/apis/clientauthentication/v1beta1"
+	
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
