@@ -25,7 +25,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/redhat-appstudio/service-provider-integration-scm-file-retriever/gitfile"
+	"github.com/mshaposhnik/service-provider-integration-scm-file-retriever/gitfile"
 )
 
 func OkHandler(w http.ResponseWriter, _ *http.Request) {
