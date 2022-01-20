@@ -46,17 +46,17 @@ func newSpiTokenFetcher() *SpiTokenFetcher {
 		panic(err.Error())
 	}
 
-	scheme := runtime.NewScheme()
-	if err = corev1.AddToScheme(scheme); err != nil {
-		panic(err.Error())
-	}
+//	scheme := runtime.NewScheme()
+//	if err = corev1.AddToScheme(scheme); err != nil {
+//		panic(err.Error())
+//	}
 
-	if err = v1beta1.AddToScheme(scheme); err != nil {
-		panic(err.Error())
-	}
+//	if err = v1beta1.AddToScheme(scheme); err != nil {
+//		panic(err.Error())
+//	}
 
 	// creates the client
-	k8sClient, err := client.New(config, client.Options{Scheme: scheme})
+	k8sClient, err := client.New(config, client.Options{})
 	if err != nil {
 		panic(err.Error())
 	}
