@@ -1,4 +1,4 @@
-module github.com/redhat-appstudio/service-provider-integration-scm-file-retriever
+module github.com/mshaposhnik/service-provider-integration-scm-file-retriever
 
 go 1.16
 
