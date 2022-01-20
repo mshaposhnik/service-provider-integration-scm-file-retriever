@@ -1,4 +1,4 @@
-module github.com/redhat-appstudio/service-provider-integration-oauth
+module github.com/mshaposhnik/service-provider-integration-oauth
 
 go 1.16
 

@@ -330,6 +330,7 @@ github.com/mshaposhnik/service-provider-integration-scm-file-retriever v0.0.0-20
 github.com/mshaposhnik/service-provider-integration-scm-file-retriever v0.0.0-20220120135053-609c53458560/go.mod h1:Ub/2iD6qgrHgwB0wlXhSiGu0UmIag0dyo/KkCXgfEDE=
 github.com/mshaposhnik/service-provider-integration-scm-file-retriever v0.0.0-20220120141551-0fd614ac3288 h1:xGbx9XbPh7v8pnevPSX8GHUu4aE8rYUDbGWXGxuWAuo=
 github.com/mshaposhnik/service-provider-integration-scm-file-retriever v0.0.0-20220120141551-0fd614ac3288/go.mod h1:+noRh/29ALVEjoHQ2W6LYPcatugcX9s4Bj2KMsmopgk=
+github.com/mshaposhnik/service-provider-integration-scm-file-retriever v0.0.0-20220120142813-6ddf86d6e5c5 h1:8NCzQEdcJTsqugFPNaHwZPxTFtrkLFn8qSNzPn/vPmg=
 github.com/munnerz/goautoneg v0.0.0-20120707110453-a547fc61f48d/go.mod h1:+n7T8mK8HuQTcFwEeznm/DIxMOiR9yIdICNftLE1DvQ=
 github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822/go.mod h1:+n7T8mK8HuQTcFwEeznm/DIxMOiR9yIdICNftLE1DvQ=
 github.com/mwitkow/go-conntrack v0.0.0-20161129095857-cc309e4a2223/go.mod h1:qRWi+5nqEBWmkhHvq77mSJWrCKwh8bxhgT7d/eI7P4U=
