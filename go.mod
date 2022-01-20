@@ -1,23 +1,14 @@
-module github.com/mshaposhnik/service-provider-integration-oauth
+module github.com/mshaposhnik/service-provider-integration-scm-file-retriever
 
 go 1.16
 
 require (
-	github.com/alexflint/go-arg v1.4.2
-	github.com/go-jose/go-jose/v3 v3.0.0
-	github.com/gorilla/mux v1.8.0
 	github.com/imroc/req v0.3.2
-	github.com/onsi/ginkgo v1.16.5
-	github.com/onsi/gomega v1.17.0
-	github.com/redhat-appstudio/service-provider-integration-operator v0.2.0
 	github.com/stretchr/testify v1.7.0
-	go.uber.org/zap v1.19.1
-	golang.org/x/net v0.0.0-20211015210444-4f30a5c0130f // indirect
-	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8
-	k8s.io/api v0.22.4
-	k8s.io/apimachinery v0.22.4
-	k8s.io/apiserver v0.22.4
-	k8s.io/client-go v0.22.4
-	k8s.io/utils v0.0.0-20210819203725-bdf08cb9a70a
-	sigs.k8s.io/controller-runtime v0.10.3
+	go.uber.org/zap v1.20.0
+	k8s.io/api v0.23.2 // indirect
+	k8s.io/apimachinery v0.23.2 // indirect
+	k8s.io/client-go v0.23.2 // indirect
+	sigs.k8s.io/controller-runtime v0.11.0 // indirect
+
 )
