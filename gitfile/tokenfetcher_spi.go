@@ -20,6 +20,8 @@ import (
 	"go.uber.org/zap"
 
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/pkg/apis/clientauthentication/v1beta1"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -44,17 +46,17 @@ func newSpiTokenFetcher() *SpiTokenFetcher {
 		panic(err.Error())
 	}
 
-	//	scheme := runtime.NewScheme()
-	//	if err = corev1.AddToScheme(scheme); err != nil {
-	//		panic(err.Error())
-	//	}
+	scheme := runtime.NewScheme()
+	if err = corev1.AddToScheme(scheme); err != nil {
+		panic(err.Error())
+	}
 
-	//	if err = v1beta1.AddToScheme(scheme); err != nil {
-	//		panic(err.Error())
-	//	}
+	if err = v1beta1.AddToScheme(scheme); err != nil {
+		panic(err.Error())
+	}
 
 	// creates the client
-	k8sClient, err := client.New(config, client.Options{})
+	k8sClient, err := client.New(config, client.Options{Scheme: scheme})
 	if err != nil {
 		panic(err.Error())
 	}
