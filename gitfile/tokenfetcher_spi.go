@@ -15,11 +15,10 @@ package gitfile
 
 import (
 	"context"
-	"fmt"
-
 	"go.uber.org/zap"
 
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/pkg/apis/clientauthentication/v1beta1"
 	"k8s.io/client-go/rest"
@@ -33,9 +32,21 @@ type SpiTokenFetcher struct {
 
 func (s *SpiTokenFetcher) BuildHeader(repoUrl string) HeaderStruct {
 	zap.L().Info("Entering BUildHeader")
-	pod := &corev1.PodList{}
-	s.k8sClient.List(context.Background(), pod, client.InNamespace("default"))
-	zap.L().Info(fmt.Sprintf("List: %d", len(pod.Items)))
+	newcm := &corev1.ConfigMap{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "v1",
+			Kind:       "ConfigMap",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "new-test-cm",
+			Namespace: "default",
+		},
+	}
+	err := s.k8sClient.Create(context.Background(), newcm)
+	if err != nil {
+		zap.L().Error("Error creating item:", zap.Error(err))
+		return HeaderStruct{}
+	}
 	return HeaderStruct{}
 }
 
