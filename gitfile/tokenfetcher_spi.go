@@ -38,7 +38,7 @@ func (s *SpiTokenFetcher) BuildHeader(repoUrl string) HeaderStruct {
 
 	ctx := context.Background()
 
-	newtb := &v1beta1.SPIAccessTokenBinding{
+	newBinding := &v1beta1.SPIAccessTokenBinding{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "new-test-binding",
 			Namespace: "default",
@@ -52,7 +52,7 @@ func (s *SpiTokenFetcher) BuildHeader(repoUrl string) HeaderStruct {
 			},
 		},
 	}
-	err := s.k8sClient.Create(ctx, newtb)
+	err := s.k8sClient.Create(ctx, newBinding)
 	if err != nil {
 		zap.L().Error("Error creating item:", zap.Error(err))
 		return HeaderStruct{}
@@ -60,13 +60,25 @@ func (s *SpiTokenFetcher) BuildHeader(repoUrl string) HeaderStruct {
 
 	time.Sleep(1 * time.Second)
 	// now re-read SPI TB to get updated fields
-	readtb := &v1beta1.SPIAccessTokenBinding{}
-	err = s.k8sClient.Get(ctx, client.ObjectKey{Namespace: "default", Name: "new-test-binding"}, readtb)
+	readBinding := &v1beta1.SPIAccessTokenBinding{}
+	err = s.k8sClient.Get(ctx, client.ObjectKey{Namespace: "default", Name: "new-test-binding"}, readBinding)
 	if err != nil {
 		zap.L().Error("Error reading TB item:", zap.Error(err))
 		return HeaderStruct{}
 	}
-	zap.L().Info(fmt.Sprintf("Access Token to watch: %s", readtb.Status.LinkedAccessTokenName))
+	tokenName := readBinding.Status.LinkedAccessTokenName
+	zap.L().Info(fmt.Sprintf("Access Token to watch: %s", tokenName))
+
+	time.Sleep(2 * time.Second)
+	// now try read SPI Token to get link
+	readToken := &v1beta1.SPIAccessToken{}
+	err = s.k8sClient.Get(ctx, client.ObjectKey{Namespace: "default", Name: tokenName}, readToken)
+	if err != nil {
+		zap.L().Error("Error reading TB item:", zap.Error(err))
+		return HeaderStruct{}
+	}
+	url := readToken.Status.OAuthUrl
+	zap.L().Info(fmt.Sprintf("URL to OAUth: %s", url))
 
 	return HeaderStruct{}
 }
