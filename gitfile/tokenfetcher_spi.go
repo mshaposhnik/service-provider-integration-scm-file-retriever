@@ -16,9 +16,8 @@ package gitfile
 import (
 	"context"
 	"fmt"
-	"time"
-
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"math/rand"
 
 	"go.uber.org/zap"
 
@@ -34,13 +33,14 @@ type SpiTokenFetcher struct {
 	k8sClient client.Client
 }
 
-func (s *SpiTokenFetcher) BuildHeader(repoUrl string) HeaderStruct {
+func (s *SpiTokenFetcher) BuildHeader(ctx context.Context, repoUrl string) (HeaderStruct, error) {
 
-	ctx := context.Background()
+	var tBindingName = "file-retriever-binging-" + RandStringBytes(6)
 
+	// create binding
 	newBinding := &v1beta1.SPIAccessTokenBinding{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "new-test-binding",
+			Name:      tBindingName,
 			Namespace: "default",
 		},
 		Spec: v1beta1.SPIAccessTokenBindingSpec{
@@ -54,33 +54,41 @@ func (s *SpiTokenFetcher) BuildHeader(repoUrl string) HeaderStruct {
 	}
 	err := s.k8sClient.Create(ctx, newBinding)
 	if err != nil {
-		zap.L().Error("Error creating item:", zap.Error(err))
-		return HeaderStruct{}
+		zap.L().Error("Error creating Token Binding item:", zap.Error(err))
+		return HeaderStruct{}, err
 	}
 
-	time.Sleep(1 * time.Second)
-	// now re-read SPI TB to get updated fields
-	readBinding := &v1beta1.SPIAccessTokenBinding{}
-	err = s.k8sClient.Get(ctx, client.ObjectKey{Namespace: "default", Name: "new-test-binding"}, readBinding)
-	if err != nil {
-		zap.L().Error("Error reading TB item:", zap.Error(err))
-		return HeaderStruct{}
+	// now re-reading SPI TB to get updated fields
+	var tokenName string
+	for {
+		readBinding := &v1beta1.SPIAccessTokenBinding{}
+		err = s.k8sClient.Get(ctx, client.ObjectKey{Namespace: "default", Name: tBindingName}, readBinding)
+		if err != nil {
+			zap.L().Error("Error reading TB item:", zap.Error(err))
+			return HeaderStruct{}, err
+		}
+		tokenName = readBinding.Status.LinkedAccessTokenName
+		if tokenName != "" {
+			break
+		}
 	}
-	tokenName := readBinding.Status.LinkedAccessTokenName
 	zap.L().Info(fmt.Sprintf("Access Token to watch: %s", tokenName))
 
-	time.Sleep(2 * time.Second)
 	// now try read SPI Token to get link
-	readToken := &v1beta1.SPIAccessToken{}
-	err = s.k8sClient.Get(ctx, client.ObjectKey{Namespace: "default", Name: tokenName}, readToken)
-	if err != nil {
-		zap.L().Error("Error reading TB item:", zap.Error(err))
-		return HeaderStruct{}
+	var url string
+	for {
+		readToken := &v1beta1.SPIAccessToken{}
+		_ = s.k8sClient.Get(ctx, client.ObjectKey{Namespace: "default", Name: tokenName}, readToken)
+		if readToken.Status.Phase == v1beta1.SPIAccessTokenPhaseAwaitingTokenData {
+			url = readToken.Status.OAuthUrl
+			zap.L().Info(fmt.Sprintf("URL to OAUth: %s", url))
+			break
+		} else if readToken.Status.Phase == v1beta1.SPIAccessTokenPhaseReady {
+			// need to read secret here
+			break
+		}
 	}
-	url := readToken.Status.OAuthUrl
-	zap.L().Info(fmt.Sprintf("URL to OAUth: %s", url))
-
-	return HeaderStruct{}
+	return HeaderStruct{}, nil
 }
 
 func newSpiTokenFetcher() *SpiTokenFetcher {
@@ -105,4 +113,14 @@ func newSpiTokenFetcher() *SpiTokenFetcher {
 		panic(err.Error())
 	}
 	return &SpiTokenFetcher{k8sClient: k8sClient}
+}
+
+const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+func RandStringBytes(n int) string {
+	b := make([]byte, n)
+	for i := range b {
+		b[i] = letterBytes[rand.Intn(len(letterBytes))]
+	}
+	return string(b)
 }

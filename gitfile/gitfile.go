@@ -38,7 +38,7 @@ func GetFileContents(ctx context.Context, repoUrl, filepath, ref string, callbac
 }
 
 func (g *GitFile) GetFileContents(ctx context.Context, repoUrl, filepath, ref string, callback func(url string)) (io.ReadCloser, error) {
-	headerStruct := buildAuthHeader(repoUrl, g.fetcher)
+	headerStruct, err := buildAuthHeader(ctx, repoUrl, g.fetcher)
 	authHeader := req.HeaderFromStruct(headerStruct)
 	fileUrl, err := detect(repoUrl, filepath, ref, authHeader)
 	if err != nil {

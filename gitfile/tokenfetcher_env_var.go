@@ -14,18 +14,20 @@
 package gitfile
 
 import (
+	"context"
+	"fmt"
 	"os"
 )
 
 // EnvVarTokenFetcher token fetcher implementation that looks for token in the specific ENV variable.
 type EnvVarTokenFetcher struct{}
 
-func (s *EnvVarTokenFetcher) BuildHeader(repoUrl string) HeaderStruct {
+func (s *EnvVarTokenFetcher) BuildHeader(context.Context, string) (HeaderStruct, error) {
 	envToken := os.Getenv("TOKEN")
 	if len(envToken) == 0 {
-		return HeaderStruct{}
+		return HeaderStruct{}, fmt.Errorf("no TOKEN variable found in env")
 	}
 	return HeaderStruct{
 		"Bearer " + envToken,
-	}
+	}, nil
 }
