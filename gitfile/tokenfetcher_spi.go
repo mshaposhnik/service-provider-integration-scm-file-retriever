@@ -16,6 +16,8 @@ package gitfile
 import (
 	"context"
 	"fmt"
+	"time"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"go.uber.org/zap"
@@ -56,6 +58,7 @@ func (s *SpiTokenFetcher) BuildHeader(repoUrl string) HeaderStruct {
 		return HeaderStruct{}
 	}
 
+	time.Sleep(1 * time.Second)
 	// now re-read SPI TB to get updated fields
 	readtb := &v1beta1.SPIAccessTokenBinding{}
 	err = s.k8sClient.Get(ctx, client.ObjectKey{Namespace: "default", Name: "new-test-binding"}, readtb)
