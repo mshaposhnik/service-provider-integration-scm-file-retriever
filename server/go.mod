@@ -4,5 +4,5 @@ go 1.16
 
 require (
 	github.com/gorilla/mux v1.8.0
-	github.com/mshaposhnik/service-provider-integration-scm-file-retriever v0.0.0-20220121121005-fccf7d7d83f1
+	github.com/mshaposhnik/service-provider-integration-scm-file-retriever v0.0.0-20220124102013-366c06efe394
 )

@@ -15,6 +15,7 @@ package gitfile
 
 import (
 	"context"
+	"fmt"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"go.uber.org/zap"
@@ -32,6 +33,9 @@ type SpiTokenFetcher struct {
 }
 
 func (s *SpiTokenFetcher) BuildHeader(repoUrl string) HeaderStruct {
+
+	ctx := context.Background()
+
 	newtb := &v1beta1.SPIAccessTokenBinding{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "new-test-binding",
@@ -46,11 +50,21 @@ func (s *SpiTokenFetcher) BuildHeader(repoUrl string) HeaderStruct {
 			},
 		},
 	}
-	err := s.k8sClient.Create(context.Background(), newtb)
+	err := s.k8sClient.Create(ctx, newtb)
 	if err != nil {
 		zap.L().Error("Error creating item:", zap.Error(err))
 		return HeaderStruct{}
 	}
+
+	// now re-read SPI TB to get updated fields
+	readtb := &v1beta1.SPIAccessTokenBinding{}
+	err = s.k8sClient.Get(ctx, client.ObjectKey{Namespace: "default", Name: "new-test-binding"}, readtb)
+	if err != nil {
+		zap.L().Error("Error reading TB item:", zap.Error(err))
+		return HeaderStruct{}
+	}
+	zap.L().Info(fmt.Sprintf("Access Token to watch: %s", readtb.Status.LinkedAccessTokenName))
+
 	return HeaderStruct{}
 }
 
