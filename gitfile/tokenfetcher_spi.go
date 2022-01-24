@@ -16,8 +16,9 @@ package gitfile
 import (
 	"context"
 	"fmt"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"math/rand"
+
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"go.uber.org/zap"
 
@@ -115,7 +116,7 @@ func newSpiTokenFetcher() *SpiTokenFetcher {
 	return &SpiTokenFetcher{k8sClient: k8sClient}
 }
 
-const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+const letterBytes = "abcdefghijklmnopqrstuvwxyz1234567890"
 
 func RandStringBytes(n int) string {
 	b := make([]byte, n)
