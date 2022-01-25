@@ -63,7 +63,8 @@ func GetFileHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	ctx := context.TODO()
-	content, err := gitfile.GetFileContents(ctx, repoUrl, filepath, ref, nil)
+	content, err := gitfile.GetFileContents(ctx, repoUrl, filepath, ref, func(url string) {
+	})
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return
