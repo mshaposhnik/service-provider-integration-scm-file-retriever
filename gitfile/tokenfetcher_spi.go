@@ -110,7 +110,8 @@ func (s *SpiTokenFetcher) BuildHeader(ctx context.Context, repoUrl string, login
 		return HeaderStruct{}, err
 	}
 
-	data, err := base64.StdEncoding.DecodeString(tokenSecret.StringData["password"])
+	var data []byte
+	_, err = base64.StdEncoding.Decode(tokenSecret.Data["password"], data)
 	if err != nil {
 		zap.L().Error("Base64 Error:", zap.Error(err))
 	}
