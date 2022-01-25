@@ -15,7 +15,6 @@ package gitfile
 
 import (
 	"context"
-	"encoding/base64"
 	"fmt"
 	"math/rand"
 
@@ -110,12 +109,12 @@ func (s *SpiTokenFetcher) BuildHeader(ctx context.Context, repoUrl string, login
 		return HeaderStruct{}, err
 	}
 
-	var data []byte
-	_, err = base64.StdEncoding.Decode(data, tokenSecret.Data["password"])
-	if err != nil {
-		zap.L().Error("Base64 Error:", zap.Error(err))
-	}
-	return HeaderStruct{Authorization: "Bearer " + string(data)}, nil
+	//var data []byte
+	//_, err = base64.StdEncoding.Decode(data, tokenSecret.Data["password"])
+	//if err != nil {
+	//	zap.L().Error("Base64 Error:", zap.Error(err))
+	//}
+	return HeaderStruct{Authorization: "Bearer " + string(tokenSecret.Data["password"])}, nil
 }
 
 func newSpiTokenFetcher() *SpiTokenFetcher {
