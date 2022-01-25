@@ -48,8 +48,16 @@ func (s *SpiTokenFetcher) BuildHeader(ctx context.Context, repoUrl string, login
 			Namespace: namespaceName,
 		},
 		Spec: v1beta1.SPIAccessTokenBindingSpec{
-			RepoUrl:     repoUrl,
-			Permissions: v1beta1.Permissions{},
+			RepoUrl: repoUrl,
+			Permissions: v1beta1.Permissions{
+				Required: []v1beta1.Permission{
+					{
+						Type: v1beta1.PermissionTypeReadWrite,
+						Area: v1beta1.PermissionAreaRepository,
+					},
+				},
+				AdditionalScopes: []string{"api"},
+			},
 			Secret: v1beta1.SecretSpec{
 				Name: secretName,
 				Type: corev1.SecretTypeBasicAuth,
