@@ -23,11 +23,11 @@ type HeaderStruct struct {
 // TokenFetcher is the interface for the authentication token suppliers which are provides tokens as a HeaderStruct
 // instances
 type TokenFetcher interface {
-	BuildHeader(ctx context.Context, repoUrl string) (HeaderStruct, error)
+	BuildHeader(ctx context.Context, repoUrl string, loginCallback func(url string)) (HeaderStruct, error)
 }
 
-func buildAuthHeader(ctx context.Context, repoUrl string, fetcher TokenFetcher) (HeaderStruct, error) {
-	headerStruct, err := fetcher.BuildHeader(ctx, repoUrl)
+func buildAuthHeader(ctx context.Context, repoUrl string, fetcher TokenFetcher, loginCallback func(url string)) (HeaderStruct, error) {
+	headerStruct, err := fetcher.BuildHeader(ctx, repoUrl, loginCallback)
 	if err != nil {
 		return HeaderStruct{}, err
 	}
