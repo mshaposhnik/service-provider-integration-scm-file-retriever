@@ -101,19 +101,12 @@ func (s *SpiTokenFetcher) BuildHeader(ctx context.Context, repoUrl string, login
 			break
 		}
 	}
-
 	tokenSecret := &corev1.Secret{}
 	err = s.k8sClient.Get(ctx, client.ObjectKey{Namespace: namespaceName, Name: secretName}, tokenSecret)
 	if err != nil {
 		zap.L().Error("Error reading Token Secret item:", zap.Error(err))
 		return HeaderStruct{}, err
 	}
-
-	//var data []byte
-	//_, err = base64.StdEncoding.Decode(data, tokenSecret.Data["password"])
-	//if err != nil {
-	//	zap.L().Error("Base64 Error:", zap.Error(err))
-	//}
 	return HeaderStruct{Authorization: "Bearer " + string(tokenSecret.Data["password"])}, nil
 }
 
