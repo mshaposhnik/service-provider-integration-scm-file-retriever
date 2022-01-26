@@ -16,11 +16,12 @@ package gitfile
 import (
 	"context"
 	"fmt"
-	"go.uber.org/zap"
 	"io/ioutil"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"math/rand"
 	"time"
+
+	"go.uber.org/zap"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/mshaposhnik/service-provider-integration-scm-file-retriever/gitfile/api/v1beta1"
 	corev1 "k8s.io/api/core/v1"
@@ -67,12 +68,12 @@ func (s *SpiTokenFetcher) BuildHeader(ctx context.Context, repoUrl string, login
 			break
 		}
 		time.Sleep(200 * time.Millisecond)
-		select {
-		case <-ctx.Done():
-			return nil, fmt.Errorf("task is cancelled")
-		}
+		//select {
+		//case <-ctx.Done():
+		//	return nil, fmt.Errorf("task is cancelled")
+		//}
 	}
-	zap.L().Debug(fmt.Sprintf("Access Token to watch: %s", tokenName))
+	zap.L().Info(fmt.Sprintf("Access Token to watch: %s", tokenName))
 
 	// now try read SPIAccessToken to get link
 	var url string
@@ -90,10 +91,10 @@ func (s *SpiTokenFetcher) BuildHeader(ctx context.Context, repoUrl string, login
 			break
 		}
 		time.Sleep(200 * time.Millisecond)
-		select {
-		case <-ctx.Done():
-			return nil, fmt.Errorf("task is cancelled")
-		}
+		//select {
+		//case <-ctx.Done():
+		//	return nil, fmt.Errorf("task is cancelled")
+		//}
 	}
 
 	// reading token secret
