@@ -36,15 +36,15 @@ type SpiTokenFetcher struct {
 
 func (s *SpiTokenFetcher) BuildHeader(ctx context.Context, repoUrl string, loginCallback func(url string)) (HeaderStruct, error) {
 
-	var namespaceName = "default"
+	//var namespaceName = "default"
 	var tBindingName = "file-retriever-binging-" + RandStringBytes(6)
 	var secretName = "file-retriever-secret-" + RandStringBytes(5)
 
 	// create binding
 	newBinding := &v1beta1.SPIAccessTokenBinding{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      tBindingName,
-			Namespace: namespaceName,
+			Name: tBindingName,
+			//		Namespace: namespaceName,
 		},
 		Spec: v1beta1.SPIAccessTokenBindingSpec{
 			RepoUrl: repoUrl,
@@ -73,7 +73,10 @@ func (s *SpiTokenFetcher) BuildHeader(ctx context.Context, repoUrl string, login
 	var tokenName string
 	for {
 		readBinding := &v1beta1.SPIAccessTokenBinding{}
-		err = s.k8sClient.Get(ctx, client.ObjectKey{Namespace: namespaceName, Name: tBindingName}, readBinding)
+		err = s.k8sClient.Get(ctx, client.ObjectKey{
+			//Namespace: namespaceName,
+			Name: tBindingName},
+			readBinding)
 		if err != nil {
 			zap.L().Error("Error reading TB item:", zap.Error(err))
 			return HeaderStruct{}, err
@@ -90,7 +93,9 @@ func (s *SpiTokenFetcher) BuildHeader(ctx context.Context, repoUrl string, login
 	var loginCalled = false
 	for {
 		readToken := &v1beta1.SPIAccessToken{}
-		_ = s.k8sClient.Get(ctx, client.ObjectKey{Namespace: namespaceName, Name: tokenName}, readToken)
+		_ = s.k8sClient.Get(ctx, client.ObjectKey{
+			//Namespace: namespaceName,
+			Name: tokenName}, readToken)
 		if readToken.Status.Phase == v1beta1.SPIAccessTokenPhaseAwaitingTokenData && !loginCalled {
 			url = readToken.Status.OAuthUrl
 			zap.L().Info(fmt.Sprintf("URL to OAUth: %s", url))
@@ -102,7 +107,9 @@ func (s *SpiTokenFetcher) BuildHeader(ctx context.Context, repoUrl string, login
 		}
 	}
 	tokenSecret := &corev1.Secret{}
-	err = s.k8sClient.Get(ctx, client.ObjectKey{Namespace: namespaceName, Name: secretName}, tokenSecret)
+	err = s.k8sClient.Get(ctx, client.ObjectKey{
+		//Namespace: namespaceName,
+		Name: secretName}, tokenSecret)
 	if err != nil {
 		zap.L().Error("Error reading Token Secret item:", zap.Error(err))
 		return HeaderStruct{}, err
