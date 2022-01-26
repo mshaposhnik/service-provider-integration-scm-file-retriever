@@ -22,12 +22,12 @@ import (
 // EnvVarTokenFetcher token fetcher implementation that looks for token in the specific ENV variable.
 type EnvVarTokenFetcher struct{}
 
-func (s *EnvVarTokenFetcher) BuildHeader(context.Context, string, func(url string)) (HeaderStruct, error) {
+func (s *EnvVarTokenFetcher) BuildHeader(context.Context, string, func(url string)) (*HeaderStruct, error) {
 	envToken := os.Getenv("TOKEN")
 	if len(envToken) == 0 {
-		return HeaderStruct{}, fmt.Errorf("no TOKEN variable found in env")
+		return nil, fmt.Errorf("no TOKEN variable found in env")
 	}
-	return HeaderStruct{
+	return &HeaderStruct{
 		"Bearer " + envToken,
 	}, nil
 }

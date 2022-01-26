@@ -16,12 +16,11 @@ package gitfile
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
-	"math/rand"
-
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
 	"go.uber.org/zap"
+	"io/ioutil"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"math/rand"
+	"time"
 
 	"github.com/mshaposhnik/service-provider-integration-scm-file-retriever/gitfile/api/v1beta1"
 	corev1 "k8s.io/api/core/v1"
@@ -41,12 +40,73 @@ const (
 	letterBytes   = "abcdefghijklmnopqrstuvwxyz1234567890"
 )
 
-func (s *SpiTokenFetcher) BuildHeader(ctx context.Context, repoUrl string, loginCallback func(url string)) (HeaderStruct, error) {
+func (s *SpiTokenFetcher) BuildHeader(ctx context.Context, repoUrl string, loginCallback func(url string)) (*HeaderStruct, error) {
 
 	var tBindingName = "file-retriever-binging-" + randStringBytes(6)
 	var secretName = "file-retriever-secret-" + randStringBytes(5)
 
 	// create binding
+	newBinding := newSPIATB(tBindingName, s, repoUrl, secretName)
+	err := s.k8sClient.Create(ctx, newBinding)
+	if err != nil {
+		zap.L().Error("Error creating Token Binding item:", zap.Error(err))
+		return nil, err
+	}
+
+	// now re-reading SPITokenBinding to get updated fields
+	var tokenName string
+	for {
+		readBinding := &v1beta1.SPIAccessTokenBinding{}
+		err = s.k8sClient.Get(ctx, client.ObjectKey{Namespace: s.namespace, Name: tBindingName}, readBinding)
+		if err != nil {
+			zap.L().Error("Error reading TB item:", zap.Error(err))
+			return nil, err
+		}
+		tokenName = readBinding.Status.LinkedAccessTokenName
+		if tokenName != "" {
+			break
+		}
+		time.Sleep(200 * time.Millisecond)
+		select {
+		case <-ctx.Done():
+			return nil, fmt.Errorf("task is cancelled")
+		}
+	}
+	zap.L().Debug(fmt.Sprintf("Access Token to watch: %s", tokenName))
+
+	// now try read SPIAccessToken to get link
+	var url string
+	var loginCalled = false
+	for {
+		readToken := &v1beta1.SPIAccessToken{}
+		_ = s.k8sClient.Get(ctx, client.ObjectKey{Namespace: s.namespace, Name: tokenName}, readToken)
+		if readToken.Status.Phase == v1beta1.SPIAccessTokenPhaseAwaitingTokenData && !loginCalled {
+			url = readToken.Status.OAuthUrl
+			zap.L().Info(fmt.Sprintf("URL to OAUth: %s", url))
+			go loginCallback(url)
+			loginCalled = true
+		} else if readToken.Status.Phase == v1beta1.SPIAccessTokenPhaseReady {
+			// now we can exit the loop and read the secret
+			break
+		}
+		time.Sleep(200 * time.Millisecond)
+		select {
+		case <-ctx.Done():
+			return nil, fmt.Errorf("task is cancelled")
+		}
+	}
+
+	// reading token secret
+	tokenSecret := &corev1.Secret{}
+	err = s.k8sClient.Get(ctx, client.ObjectKey{Namespace: s.namespace, Name: secretName}, tokenSecret)
+	if err != nil {
+		zap.L().Error("Error reading Token Secret item:", zap.Error(err))
+		return nil, err
+	}
+	return &HeaderStruct{Authorization: "Bearer " + string(tokenSecret.Data["password"])}, nil
+}
+
+func newSPIATB(tBindingName string, s *SpiTokenFetcher, repoUrl string, secretName string) *v1beta1.SPIAccessTokenBinding {
 	newBinding := &v1beta1.SPIAccessTokenBinding{
 		ObjectMeta: metav1.ObjectMeta{Name: tBindingName, Namespace: s.namespace},
 		Spec: v1beta1.SPIAccessTokenBindingSpec{
@@ -66,51 +126,7 @@ func (s *SpiTokenFetcher) BuildHeader(ctx context.Context, repoUrl string, login
 			},
 		},
 	}
-	err := s.k8sClient.Create(ctx, newBinding)
-	if err != nil {
-		zap.L().Error("Error creating Token Binding item:", zap.Error(err))
-		return HeaderStruct{}, err
-	}
-
-	// now re-reading SPI TB to get updated fields
-	var tokenName string
-	for {
-		readBinding := &v1beta1.SPIAccessTokenBinding{}
-		err = s.k8sClient.Get(ctx, client.ObjectKey{Namespace: s.namespace, Name: tBindingName}, readBinding)
-		if err != nil {
-			zap.L().Error("Error reading TB item:", zap.Error(err))
-			return HeaderStruct{}, err
-		}
-		tokenName = readBinding.Status.LinkedAccessTokenName
-		if tokenName != "" {
-			break
-		}
-	}
-	zap.L().Info(fmt.Sprintf("Access Token to watch: %s", tokenName))
-
-	// now try read SPI Token to get link
-	var url string
-	var loginCalled = false
-	for {
-		readToken := &v1beta1.SPIAccessToken{}
-		_ = s.k8sClient.Get(ctx, client.ObjectKey{Namespace: s.namespace, Name: tokenName}, readToken)
-		if readToken.Status.Phase == v1beta1.SPIAccessTokenPhaseAwaitingTokenData && !loginCalled {
-			url = readToken.Status.OAuthUrl
-			zap.L().Info(fmt.Sprintf("URL to OAUth: %s", url))
-			go loginCallback(url)
-			loginCalled = true
-		} else if readToken.Status.Phase == v1beta1.SPIAccessTokenPhaseReady {
-			// now we can exit the loop and read the secret
-			break
-		}
-	}
-	tokenSecret := &corev1.Secret{}
-	err = s.k8sClient.Get(ctx, client.ObjectKey{Namespace: s.namespace, Name: secretName}, tokenSecret)
-	if err != nil {
-		zap.L().Error("Error reading Token Secret item:", zap.Error(err))
-		return HeaderStruct{}, err
-	}
-	return HeaderStruct{Authorization: "Bearer " + string(tokenSecret.Data["password"])}, nil
+	return newBinding
 }
 
 func newSpiTokenFetcher() *SpiTokenFetcher {
