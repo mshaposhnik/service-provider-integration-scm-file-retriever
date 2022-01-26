@@ -67,11 +67,12 @@ func (s *SpiTokenFetcher) BuildHeader(ctx context.Context, repoUrl string, login
 		if tokenName != "" {
 			break
 		}
-		time.Sleep(200 * time.Millisecond)
-		//select {
-		//case <-ctx.Done():
-		//	return nil, fmt.Errorf("task is cancelled")
-		//}
+		select {
+		case <-ctx.Done():
+			return nil, fmt.Errorf("task is cancelled")
+		default:
+			time.Sleep(200 * time.Millisecond)
+		}
 	}
 	zap.L().Info(fmt.Sprintf("Access Token to watch: %s", tokenName))
 
@@ -91,10 +92,12 @@ func (s *SpiTokenFetcher) BuildHeader(ctx context.Context, repoUrl string, login
 			break
 		}
 		time.Sleep(200 * time.Millisecond)
-		//select {
-		//case <-ctx.Done():
-		//	return nil, fmt.Errorf("task is cancelled")
-		//}
+		select {
+		case <-ctx.Done():
+			return nil, fmt.Errorf("task is cancelled")
+		default:
+			time.Sleep(200 * time.Millisecond)
+		}
 	}
 
 	// reading token secret
