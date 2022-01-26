@@ -91,7 +91,6 @@ func (s *SpiTokenFetcher) BuildHeader(ctx context.Context, repoUrl string, login
 			// now we can exit the loop and read the secret
 			break
 		}
-		time.Sleep(200 * time.Millisecond)
 		select {
 		case <-ctx.Done():
 			return nil, fmt.Errorf("task is cancelled")
