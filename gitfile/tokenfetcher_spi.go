@@ -16,6 +16,7 @@ package gitfile
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
 	"math/rand"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -32,20 +33,22 @@ import (
 // SpiTokenFetcher token fetcher implementation that looks for token in the specific ENV variable.
 type SpiTokenFetcher struct {
 	k8sClient client.Client
+	namespace string
 }
+
+const (
+	namespaceFile = "/var/run/secrets/kubernetes.io/serviceaccount/namespace"
+	letterBytes   = "abcdefghijklmnopqrstuvwxyz1234567890"
+)
 
 func (s *SpiTokenFetcher) BuildHeader(ctx context.Context, repoUrl string, loginCallback func(url string)) (HeaderStruct, error) {
 
-	//var namespaceName = "default"
-	var tBindingName = "file-retriever-binging-" + RandStringBytes(6)
-	var secretName = "file-retriever-secret-" + RandStringBytes(5)
+	var tBindingName = "file-retriever-binging-" + randStringBytes(6)
+	var secretName = "file-retriever-secret-" + randStringBytes(5)
 
 	// create binding
 	newBinding := &v1beta1.SPIAccessTokenBinding{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: tBindingName,
-			//		Namespace: namespaceName,
-		},
+		ObjectMeta: metav1.ObjectMeta{Name: tBindingName, Namespace: s.namespace},
 		Spec: v1beta1.SPIAccessTokenBindingSpec{
 			RepoUrl: repoUrl,
 			Permissions: v1beta1.Permissions{
@@ -73,10 +76,7 @@ func (s *SpiTokenFetcher) BuildHeader(ctx context.Context, repoUrl string, login
 	var tokenName string
 	for {
 		readBinding := &v1beta1.SPIAccessTokenBinding{}
-		err = s.k8sClient.Get(ctx, client.ObjectKey{
-			//Namespace: namespaceName,
-			Name: tBindingName},
-			readBinding)
+		err = s.k8sClient.Get(ctx, client.ObjectKey{Namespace: s.namespace, Name: tBindingName}, readBinding)
 		if err != nil {
 			zap.L().Error("Error reading TB item:", zap.Error(err))
 			return HeaderStruct{}, err
@@ -93,9 +93,7 @@ func (s *SpiTokenFetcher) BuildHeader(ctx context.Context, repoUrl string, login
 	var loginCalled = false
 	for {
 		readToken := &v1beta1.SPIAccessToken{}
-		_ = s.k8sClient.Get(ctx, client.ObjectKey{
-			//Namespace: namespaceName,
-			Name: tokenName}, readToken)
+		_ = s.k8sClient.Get(ctx, client.ObjectKey{Namespace: s.namespace, Name: tokenName}, readToken)
 		if readToken.Status.Phase == v1beta1.SPIAccessTokenPhaseAwaitingTokenData && !loginCalled {
 			url = readToken.Status.OAuthUrl
 			zap.L().Info(fmt.Sprintf("URL to OAUth: %s", url))
@@ -107,9 +105,7 @@ func (s *SpiTokenFetcher) BuildHeader(ctx context.Context, repoUrl string, login
 		}
 	}
 	tokenSecret := &corev1.Secret{}
-	err = s.k8sClient.Get(ctx, client.ObjectKey{
-		//Namespace: namespaceName,
-		Name: secretName}, tokenSecret)
+	err = s.k8sClient.Get(ctx, client.ObjectKey{Namespace: s.namespace, Name: secretName}, tokenSecret)
 	if err != nil {
 		zap.L().Error("Error reading Token Secret item:", zap.Error(err))
 		return HeaderStruct{}, err
@@ -118,6 +114,11 @@ func (s *SpiTokenFetcher) BuildHeader(ctx context.Context, repoUrl string, login
 }
 
 func newSpiTokenFetcher() *SpiTokenFetcher {
+	namespace, err := ioutil.ReadFile(namespaceFile)
+	if err != nil {
+		panic(err.Error())
+	}
+
 	// creates the in-cluster config
 	config, err := rest.InClusterConfig()
 	if err != nil {
@@ -138,12 +139,10 @@ func newSpiTokenFetcher() *SpiTokenFetcher {
 	if err != nil {
 		panic(err.Error())
 	}
-	return &SpiTokenFetcher{k8sClient: k8sClient}
+	return &SpiTokenFetcher{k8sClient: k8sClient, namespace: string(namespace)}
 }
 
-const letterBytes = "abcdefghijklmnopqrstuvwxyz1234567890"
-
-func RandStringBytes(n int) string {
+func randStringBytes(n int) string {
 	b := make([]byte, n)
 	for i := range b {
 		b[i] = letterBytes[rand.Intn(len(letterBytes))]
