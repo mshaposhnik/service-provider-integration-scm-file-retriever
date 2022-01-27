@@ -17,6 +17,8 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/rest"
 	"math/rand"
 	"time"
 
@@ -25,8 +27,6 @@ import (
 
 	"github.com/mshaposhnik/service-provider-integration-scm-file-retriever/gitfile/api/v1beta1"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -41,6 +41,35 @@ const (
 	letterBytes   = "abcdefghijklmnopqrstuvwxyz1234567890"
 )
 
+func NewSpiTokenFetcher() *SpiTokenFetcher {
+	namespace, err := ioutil.ReadFile(namespaceFile)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	// creates the in-cluster config
+	config, err := rest.InClusterConfig()
+	if err != nil {
+		panic(err.Error())
+	}
+
+	scheme := runtime.NewScheme()
+	if err = corev1.AddToScheme(scheme); err != nil {
+		panic(err.Error())
+	}
+
+	if err = v1beta1.AddToScheme(scheme); err != nil {
+		panic(err.Error())
+	}
+
+	// creates the client
+	k8sClient, err := client.New(config, client.Options{Scheme: scheme})
+	if err != nil {
+		panic(err.Error())
+	}
+	return &SpiTokenFetcher{k8sClient: k8sClient, namespace: string(namespace)}
+}
+
 func (s *SpiTokenFetcher) BuildHeader(ctx context.Context, repoUrl string, loginCallback func(url string)) (*HeaderStruct, error) {
 
 	var tBindingName = "file-retriever-binging-" + randStringBytes(6)
@@ -53,6 +82,14 @@ func (s *SpiTokenFetcher) BuildHeader(ctx context.Context, repoUrl string, login
 		zap.L().Error("Error creating Token Binding item:", zap.Error(err))
 		return nil, err
 	}
+
+	// scheduling the binding cleanup
+	defer func() {
+		// clean up token binding
+		err = s.k8sClient.Delete(ctx, newBinding)
+		if err != nil {
+		}
+	}()
 
 	// now re-reading SPITokenBinding to get updated fields
 	var tokenName string
@@ -106,6 +143,7 @@ func (s *SpiTokenFetcher) BuildHeader(ctx context.Context, repoUrl string, login
 		zap.L().Error("Error reading Token Secret item:", zap.Error(err))
 		return nil, err
 	}
+
 	return &HeaderStruct{Authorization: "Bearer " + string(tokenSecret.Data["password"])}, nil
 }
 
@@ -130,35 +168,6 @@ func newSPIATB(tBindingName string, s *SpiTokenFetcher, repoUrl string, secretNa
 		},
 	}
 	return newBinding
-}
-
-func newSpiTokenFetcher() *SpiTokenFetcher {
-	namespace, err := ioutil.ReadFile(namespaceFile)
-	if err != nil {
-		panic(err.Error())
-	}
-
-	// creates the in-cluster config
-	config, err := rest.InClusterConfig()
-	if err != nil {
-		panic(err.Error())
-	}
-
-	scheme := runtime.NewScheme()
-	if err = corev1.AddToScheme(scheme); err != nil {
-		panic(err.Error())
-	}
-
-	if err = v1beta1.AddToScheme(scheme); err != nil {
-		panic(err.Error())
-	}
-
-	// creates the client
-	k8sClient, err := client.New(config, client.Options{Scheme: scheme})
-	if err != nil {
-		panic(err.Error())
-	}
-	return &SpiTokenFetcher{k8sClient: k8sClient, namespace: string(namespace)}
 }
 
 func randStringBytes(n int) string {

@@ -26,7 +26,7 @@ type GitFile struct {
 }
 
 // initialize with default fetcher
-var gitFile = New(newSpiTokenFetcher())
+var gitFile = New(NewSpiTokenFetcher())
 
 // GetFileContents is a main entry function allowing to retrieve file content from the SCM provider.
 // It expects three file location parameters, from which the repository URL and path to the file are mandatory,
