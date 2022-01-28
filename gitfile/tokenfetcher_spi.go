@@ -17,9 +17,10 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"math/rand"
 	"time"
+
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/rest"
@@ -75,7 +76,7 @@ func (s *SpiTokenFetcher) BuildHeader(ctx context.Context, repoUrl string, login
 	var tBindingName = "file-retriever-binging-" + randStringBytes(6)
 
 	// create binding
-	newBinding := newSPIATB(tBindingName, s, repoUrl)
+	newBinding := newSPIATB(tBindingName, s.namespace, repoUrl)
 	err := s.k8sClient.Create(ctx, newBinding)
 	if err != nil {
 		zap.L().Error("Error creating Token Binding item:", zap.Error(err))
@@ -93,16 +94,12 @@ func (s *SpiTokenFetcher) BuildHeader(ctx context.Context, repoUrl string, login
 
 	// now re-reading SPITokenBinding to get updated fields
 	var tokenName string
-	var secretName string
 	for {
-		readBinding := &v1beta1.SPIAccessTokenBinding{}
-		err = s.k8sClient.Get(ctx, client.ObjectKey{Namespace: s.namespace, Name: tBindingName}, readBinding)
+		readBinding, err := readTB(ctx, tBindingName, s)
 		if err != nil {
 			zap.L().Error("Error reading TB item:", zap.Error(err))
-			return nil, err
 		}
 		tokenName = readBinding.Status.LinkedAccessTokenName
-		secretName = readBinding.Status.SyncedObjectRef.Name
 		if tokenName != "" {
 			break
 		}
@@ -138,6 +135,27 @@ func (s *SpiTokenFetcher) BuildHeader(ctx context.Context, repoUrl string, login
 		}
 	}
 
+	// now re-reading SPITokenBinding to get updated fields
+	var secretName string
+	for {
+		readBinding, err := readTB(ctx, tBindingName, s)
+		err = s.k8sClient.Get(ctx, client.ObjectKey{Namespace: s.namespace, Name: tBindingName}, readBinding)
+		if err != nil {
+			zap.L().Error("Error reading TB item:", zap.Error(err))
+		}
+		secretName = readBinding.Status.SyncedObjectRef.Name
+		if secretName != "" {
+			break
+		}
+		select {
+		case <-ctx.Done():
+			return nil, fmt.Errorf("task is cancelled")
+		default:
+			time.Sleep(200 * time.Millisecond)
+		}
+	}
+	zap.L().Info(fmt.Sprintf("Secret to watch: %s", secretName))
+
 	// reading token secret
 	for {
 		tokenSecret := &corev1.Secret{}
@@ -158,9 +176,9 @@ func (s *SpiTokenFetcher) BuildHeader(ctx context.Context, repoUrl string, login
 	}
 }
 
-func newSPIATB(tBindingName string, s *SpiTokenFetcher, repoUrl string) *v1beta1.SPIAccessTokenBinding {
+func newSPIATB(tBindingName, namespace, repoUrl string) *v1beta1.SPIAccessTokenBinding {
 	newBinding := &v1beta1.SPIAccessTokenBinding{
-		ObjectMeta: metav1.ObjectMeta{Name: tBindingName, Namespace: s.namespace},
+		ObjectMeta: metav1.ObjectMeta{Name: tBindingName, Namespace: namespace},
 		Spec: v1beta1.SPIAccessTokenBindingSpec{
 			RepoUrl: repoUrl,
 			Permissions: v1beta1.Permissions{
@@ -178,6 +196,15 @@ func newSPIATB(tBindingName string, s *SpiTokenFetcher, repoUrl string) *v1beta1
 		},
 	}
 	return newBinding
+}
+
+func readTB(ctx context.Context, tBindingName string, s *SpiTokenFetcher) (*v1beta1.SPIAccessTokenBinding, error) {
+	readBinding := &v1beta1.SPIAccessTokenBinding{}
+	err := s.k8sClient.Get(ctx, client.ObjectKey{Namespace: s.namespace, Name: tBindingName}, readBinding)
+	if err != nil {
+		return nil, err
+	}
+	return readBinding, nil
 }
 
 func randStringBytes(n int) string {

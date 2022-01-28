@@ -63,6 +63,7 @@ func GetFileHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	ctx := context.TODO()
+	gitfile := gitfile.Default()
 	content, err := gitfile.GetFileContents(ctx, repoUrl, filepath, ref, func(url string) {
 	})
 	if err != nil {
