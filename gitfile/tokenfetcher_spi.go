@@ -17,15 +17,15 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/client-go/rest"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"math/rand"
 	"time"
 
-	"go.uber.org/zap"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/rest"
 
 	"github.com/mshaposhnik/service-provider-integration-scm-file-retriever/gitfile/api/v1beta1"
+	"go.uber.org/zap"
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -73,10 +73,9 @@ func NewSpiTokenFetcher() *SpiTokenFetcher {
 func (s *SpiTokenFetcher) BuildHeader(ctx context.Context, repoUrl string, loginCallback func(url string)) (*HeaderStruct, error) {
 
 	var tBindingName = "file-retriever-binging-" + randStringBytes(6)
-	var secretName = "file-retriever-secret-" + randStringBytes(5)
 
 	// create binding
-	newBinding := newSPIATB(tBindingName, s, repoUrl, secretName)
+	newBinding := newSPIATB(tBindingName, s, repoUrl)
 	err := s.k8sClient.Create(ctx, newBinding)
 	if err != nil {
 		zap.L().Error("Error creating Token Binding item:", zap.Error(err))
@@ -88,11 +87,13 @@ func (s *SpiTokenFetcher) BuildHeader(ctx context.Context, repoUrl string, login
 		// clean up token binding
 		err = s.k8sClient.Delete(ctx, newBinding)
 		if err != nil {
+			zap.L().Error("Error cleaning up TB item:", zap.Error(err))
 		}
 	}()
 
 	// now re-reading SPITokenBinding to get updated fields
 	var tokenName string
+	var secretName string
 	for {
 		readBinding := &v1beta1.SPIAccessTokenBinding{}
 		err = s.k8sClient.Get(ctx, client.ObjectKey{Namespace: s.namespace, Name: tBindingName}, readBinding)
@@ -101,6 +102,7 @@ func (s *SpiTokenFetcher) BuildHeader(ctx context.Context, repoUrl string, login
 			return nil, err
 		}
 		tokenName = readBinding.Status.LinkedAccessTokenName
+		secretName = readBinding.Status.SyncedObjectRef.Name
 		if tokenName != "" {
 			break
 		}
@@ -137,17 +139,26 @@ func (s *SpiTokenFetcher) BuildHeader(ctx context.Context, repoUrl string, login
 	}
 
 	// reading token secret
-	tokenSecret := &corev1.Secret{}
-	err = s.k8sClient.Get(ctx, client.ObjectKey{Namespace: s.namespace, Name: secretName}, tokenSecret)
-	if err != nil {
-		zap.L().Error("Error reading Token Secret item:", zap.Error(err))
-		return nil, err
+	for {
+		tokenSecret := &corev1.Secret{}
+		err = s.k8sClient.Get(ctx, client.ObjectKey{Namespace: s.namespace, Name: secretName}, tokenSecret)
+		if err != nil {
+			zap.L().Error("Error reading Token Secret item:", zap.Error(err))
+			return nil, err
+		}
+		if len(tokenSecret.Data) > 0 {
+			return &HeaderStruct{Authorization: "Bearer " + string(tokenSecret.Data["password"])}, nil
+		}
+		select {
+		case <-ctx.Done():
+			return nil, fmt.Errorf("task is cancelled")
+		default:
+			time.Sleep(200 * time.Millisecond)
+		}
 	}
-
-	return &HeaderStruct{Authorization: "Bearer " + string(tokenSecret.Data["password"])}, nil
 }
 
-func newSPIATB(tBindingName string, s *SpiTokenFetcher, repoUrl string, secretName string) *v1beta1.SPIAccessTokenBinding {
+func newSPIATB(tBindingName string, s *SpiTokenFetcher, repoUrl string) *v1beta1.SPIAccessTokenBinding {
 	newBinding := &v1beta1.SPIAccessTokenBinding{
 		ObjectMeta: metav1.ObjectMeta{Name: tBindingName, Namespace: s.namespace},
 		Spec: v1beta1.SPIAccessTokenBindingSpec{
@@ -162,7 +173,6 @@ func newSPIATB(tBindingName string, s *SpiTokenFetcher, repoUrl string, secretNa
 				AdditionalScopes: []string{"api"},
 			},
 			Secret: v1beta1.SecretSpec{
-				Name: secretName,
 				Type: corev1.SecretTypeBasicAuth,
 			},
 		},
