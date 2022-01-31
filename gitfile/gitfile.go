@@ -30,8 +30,8 @@ type GitFile struct {
 // and optional Git reference for the branch/tags/commidIds.
 // Function type parameter is a callback used when user authentication is needed in order to retrieve the file,
 // that function will be called with the URL to OAuth service, where user need to be redirected.
-func (g *GitFile) GetFileContents(ctx context.Context, repoUrl, filepath, ref string, callback func(url string)) (io.ReadCloser, error) {
-	headerStruct, err := buildAuthHeader(ctx, repoUrl, g.fetcher, callback)
+func (g *GitFile) GetFileContents(ctx context.Context, namespace, repoUrl, filepath, ref string, callback func(ctx context.Context, url string)) (io.ReadCloser, error) {
+	headerStruct, err := buildAuthHeader(ctx, namespace, repoUrl, g.fetcher, callback)
 	authHeader := req.HeaderFromStruct(headerStruct)
 	fileUrl, err := detect(repoUrl, filepath, ref, authHeader)
 	if err != nil {

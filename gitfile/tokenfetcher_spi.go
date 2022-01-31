@@ -16,7 +16,6 @@ package gitfile
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"math/rand"
 	"time"
 
@@ -25,7 +24,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/rest"
 
-	"github.com/mshaposhnik/service-provider-integration-scm-file-retriever/gitfile/api/v1beta1"
+	"github.com/redhat-appstudio/service-provider-integration-operator/api/v1beta1"
 	"go.uber.org/zap"
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -34,20 +33,13 @@ import (
 // SpiTokenFetcher token fetcher implementation that looks for token in the specific ENV variable.
 type SpiTokenFetcher struct {
 	k8sClient client.Client
-	namespace string
 }
 
 const (
-	namespaceFile = "/var/run/secrets/kubernetes.io/serviceaccount/namespace"
-	letterBytes   = "abcdefghijklmnopqrstuvwxyz1234567890"
+	letterBytes = "abcdefghijklmnopqrstuvwxyz1234567890"
 )
 
 func NewSpiTokenFetcher() *SpiTokenFetcher {
-	namespace, err := ioutil.ReadFile(namespaceFile)
-	if err != nil {
-		panic(err.Error())
-	}
-
 	// creates the in-cluster config
 	config, err := rest.InClusterConfig()
 	if err != nil {
@@ -68,15 +60,15 @@ func NewSpiTokenFetcher() *SpiTokenFetcher {
 	if err != nil {
 		panic(err.Error())
 	}
-	return &SpiTokenFetcher{k8sClient: k8sClient, namespace: string(namespace)}
+	return &SpiTokenFetcher{k8sClient: k8sClient}
 }
 
-func (s *SpiTokenFetcher) BuildHeader(ctx context.Context, repoUrl string, loginCallback func(url string)) (*HeaderStruct, error) {
+func (s *SpiTokenFetcher) BuildHeader(ctx context.Context, namespace, repoUrl string, loginCallback func(ctx context.Context, url string)) (*HeaderStruct, error) {
 
 	var tBindingName = "file-retriever-binging-" + randStringBytes(6)
 
 	// create binding
-	newBinding := newSPIATB(tBindingName, s.namespace, repoUrl)
+	newBinding := newSPIATB(tBindingName, namespace, repoUrl)
 	err := s.k8sClient.Create(ctx, newBinding)
 	if err != nil {
 		zap.L().Error("Error creating Token Binding item:", zap.Error(err))
@@ -95,7 +87,7 @@ func (s *SpiTokenFetcher) BuildHeader(ctx context.Context, repoUrl string, login
 	// now re-reading SPITokenBinding to get updated fields
 	var tokenName string
 	for {
-		readBinding, err := readTB(ctx, tBindingName, s)
+		readBinding, err := readTB(ctx, namespace, tBindingName, s.k8sClient)
 		if err != nil {
 			zap.L().Error("Error reading TB item:", zap.Error(err))
 		}
@@ -117,11 +109,11 @@ func (s *SpiTokenFetcher) BuildHeader(ctx context.Context, repoUrl string, login
 	var loginCalled = false
 	for {
 		readToken := &v1beta1.SPIAccessToken{}
-		_ = s.k8sClient.Get(ctx, client.ObjectKey{Namespace: s.namespace, Name: tokenName}, readToken)
+		_ = s.k8sClient.Get(ctx, client.ObjectKey{Namespace: namespace, Name: tokenName}, readToken)
 		if readToken.Status.Phase == v1beta1.SPIAccessTokenPhaseAwaitingTokenData && !loginCalled {
 			url = readToken.Status.OAuthUrl
 			zap.L().Info(fmt.Sprintf("URL to OAUth: %s", url))
-			go loginCallback(url)
+			go loginCallback(ctx, url)
 			loginCalled = true
 		} else if readToken.Status.Phase == v1beta1.SPIAccessTokenPhaseReady {
 			// now we can exit the loop and read the secret
@@ -138,8 +130,8 @@ func (s *SpiTokenFetcher) BuildHeader(ctx context.Context, repoUrl string, login
 	// now re-reading SPITokenBinding to get updated fields
 	var secretName string
 	for {
-		readBinding, err := readTB(ctx, tBindingName, s)
-		err = s.k8sClient.Get(ctx, client.ObjectKey{Namespace: s.namespace, Name: tBindingName}, readBinding)
+		readBinding, err := readTB(ctx, namespace, tBindingName, s.k8sClient)
+		err = s.k8sClient.Get(ctx, client.ObjectKey{Namespace: namespace, Name: tBindingName}, readBinding)
 		if err != nil {
 			zap.L().Error("Error reading TB item:", zap.Error(err))
 		}
@@ -159,7 +151,7 @@ func (s *SpiTokenFetcher) BuildHeader(ctx context.Context, repoUrl string, login
 	// reading token secret
 	for {
 		tokenSecret := &corev1.Secret{}
-		err = s.k8sClient.Get(ctx, client.ObjectKey{Namespace: s.namespace, Name: secretName}, tokenSecret)
+		err = s.k8sClient.Get(ctx, client.ObjectKey{Namespace: namespace, Name: secretName}, tokenSecret)
 		if err != nil {
 			zap.L().Error("Error reading Token Secret item:", zap.Error(err))
 			return nil, err
@@ -198,9 +190,9 @@ func newSPIATB(tBindingName, namespace, repoUrl string) *v1beta1.SPIAccessTokenB
 	return newBinding
 }
 
-func readTB(ctx context.Context, tBindingName string, s *SpiTokenFetcher) (*v1beta1.SPIAccessTokenBinding, error) {
+func readTB(ctx context.Context, namespace, tBindingName string, k8sClient client.Client) (*v1beta1.SPIAccessTokenBinding, error) {
 	readBinding := &v1beta1.SPIAccessTokenBinding{}
-	err := s.k8sClient.Get(ctx, client.ObjectKey{Namespace: s.namespace, Name: tBindingName}, readBinding)
+	err := k8sClient.Get(ctx, client.ObjectKey{Namespace: namespace, Name: tBindingName}, readBinding)
 	if err != nil {
 		return nil, err
 	}

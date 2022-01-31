@@ -25,6 +25,6 @@ func TestCreateHeaderStructFromEnv(t *testing.T) {
 	//t.Setenv("TOKEN", "abcd_foo") // only since 1.17
 	os.Setenv("TOKEN", "abcd_foo")
 	defer os.Unsetenv("TOKEN")
-	headerStruct, _ := new(EnvVarTokenFetcher).BuildHeader(context.Background(), "https://github.com/any/test.git", func(S string) {})
+	headerStruct, _ := new(EnvVarTokenFetcher).BuildHeader(context.Background(), "default", "https://github.com/any/test.git", func(ctx context.Context, S string) {})
 	assert.Equal(t, "Bearer abcd_foo", headerStruct.Authorization, "Authorization header value mismatch")
 }
