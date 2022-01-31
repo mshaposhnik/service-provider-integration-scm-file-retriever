@@ -37,6 +37,7 @@ type SpiTokenFetcher struct {
 
 const (
 	letterBytes = "abcdefghijklmnopqrstuvwxyz1234567890"
+	duration    = 5 * time.Second
 )
 
 func NewSpiTokenFetcher() *SpiTokenFetcher {
@@ -86,7 +87,7 @@ func (s *SpiTokenFetcher) BuildHeader(ctx context.Context, namespace, repoUrl st
 
 	// now re-reading SPITokenBinding to get updated fields
 	var tokenName string
-	for {
+	for timeout := time.After(duration); ; {
 		readBinding, err := readTB(ctx, namespace, tBindingName, s.k8sClient)
 		if err != nil {
 			zap.L().Error("Error reading TB item:", zap.Error(err))
@@ -98,6 +99,9 @@ func (s *SpiTokenFetcher) BuildHeader(ctx context.Context, namespace, repoUrl st
 		select {
 		case <-ctx.Done():
 			return nil, fmt.Errorf("task is cancelled")
+		case <-timeout:
+			zap.L().Error("Timeout reached reading TB item:", zap.Error(err))
+			return nil, fmt.Errorf("TB reading task is timed out")
 		default:
 			time.Sleep(200 * time.Millisecond)
 		}
@@ -107,7 +111,7 @@ func (s *SpiTokenFetcher) BuildHeader(ctx context.Context, namespace, repoUrl st
 	// now try read SPIAccessToken to get link
 	var url string
 	var loginCalled = false
-	for {
+	for timeout := time.After(duration); ; {
 		readToken := &v1beta1.SPIAccessToken{}
 		_ = s.k8sClient.Get(ctx, client.ObjectKey{Namespace: namespace, Name: tokenName}, readToken)
 		if readToken.Status.Phase == v1beta1.SPIAccessTokenPhaseAwaitingTokenData && !loginCalled {
@@ -122,6 +126,9 @@ func (s *SpiTokenFetcher) BuildHeader(ctx context.Context, namespace, repoUrl st
 		select {
 		case <-ctx.Done():
 			return nil, fmt.Errorf("task is cancelled")
+		case <-timeout:
+			zap.L().Error("Timeout reached reading Token item:", zap.Error(err))
+			return nil, fmt.Errorf("token reading task is timed out")
 		default:
 			time.Sleep(200 * time.Millisecond)
 		}
@@ -129,7 +136,7 @@ func (s *SpiTokenFetcher) BuildHeader(ctx context.Context, namespace, repoUrl st
 
 	// now re-reading SPITokenBinding to get updated fields
 	var secretName string
-	for {
+	for timeout := time.After(duration); ; {
 		readBinding, err := readTB(ctx, namespace, tBindingName, s.k8sClient)
 		err = s.k8sClient.Get(ctx, client.ObjectKey{Namespace: namespace, Name: tBindingName}, readBinding)
 		if err != nil {
@@ -142,6 +149,9 @@ func (s *SpiTokenFetcher) BuildHeader(ctx context.Context, namespace, repoUrl st
 		select {
 		case <-ctx.Done():
 			return nil, fmt.Errorf("task is cancelled")
+		case <-timeout:
+			zap.L().Error("Timeout reached reading TB item:", zap.Error(err))
+			return nil, fmt.Errorf("TB reading task is timed out")
 		default:
 			time.Sleep(200 * time.Millisecond)
 		}
@@ -149,7 +159,7 @@ func (s *SpiTokenFetcher) BuildHeader(ctx context.Context, namespace, repoUrl st
 	zap.L().Info(fmt.Sprintf("Secret to watch: %s", secretName))
 
 	// reading token secret
-	for {
+	for timeout := time.After(duration); ; {
 		tokenSecret := &corev1.Secret{}
 		err = s.k8sClient.Get(ctx, client.ObjectKey{Namespace: namespace, Name: secretName}, tokenSecret)
 		if err != nil {
@@ -162,6 +172,9 @@ func (s *SpiTokenFetcher) BuildHeader(ctx context.Context, namespace, repoUrl st
 		select {
 		case <-ctx.Done():
 			return nil, fmt.Errorf("task is cancelled")
+		case <-timeout:
+			zap.L().Error("Timeout reached reading Secret item:", zap.Error(err))
+			return nil, fmt.Errorf("secred reading task is timed out")
 		default:
 			time.Sleep(200 * time.Millisecond)
 		}
