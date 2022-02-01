@@ -111,7 +111,7 @@ func (s *SpiTokenFetcher) BuildHeader(ctx context.Context, namespace, repoUrl st
 	// now try read SPIAccessToken to get link
 	var url string
 	var loginCalled = false
-	for timeout := time.After(duration); ; {
+	for timeout := time.After(10 * duration); ; {
 		readToken := &v1beta1.SPIAccessToken{}
 		_ = s.k8sClient.Get(ctx, client.ObjectKey{Namespace: namespace, Name: tokenName}, readToken)
 		if readToken.Status.Phase == v1beta1.SPIAccessTokenPhaseAwaitingTokenData && !loginCalled {
