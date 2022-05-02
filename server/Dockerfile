@@ -5,12 +5,12 @@ USER root
 WORKDIR /spi-file
 
 # Copy the Go Modules manifests
-COPY ../go.mod go.mod
-COPY ../go.sum go.sum
+COPY ./go.mod go.mod
+COPY ./go.sum go.sum
 
 # Copy the go sources
-COPY ../server.go server.go
-COPY ../websocket websocket
+COPY ./server.go server.go
+COPY ./websocket websocket
 #COPY ../gitfile gitfile
 COPY static/index.html static/index.html
 

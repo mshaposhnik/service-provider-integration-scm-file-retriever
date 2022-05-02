@@ -37,7 +37,7 @@ type SpiTokenFetcher struct {
 
 const (
 	letterBytes = "abcdefghijklmnopqrstuvwxyz1234567890"
-	duration    = 5 * time.Second
+	duration    = 25 * time.Second
 )
 
 func NewSpiTokenFetcher() *SpiTokenFetcher {
