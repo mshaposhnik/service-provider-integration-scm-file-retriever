@@ -3,7 +3,7 @@ set -e
 echo 'Updating host variables'
 
 
-SCM_HOST_VALUE='file-retriever-server-service-spi-scm.'$(oc get ingresses.config/cluster -o jsonpath={.spec.domain})
+SCM_HOST_VALUE='file-retriever-server-service-spi-system.'$(oc get ingresses.config/cluster -o jsonpath={.spec.domain})
 OAUTH_URL='spi-oauth-route-spi-system.'$( oc get ingresses.config/cluster -o jsonpath={.spec.domain})
 echo "scm="$SCM_HOST_VALUE
 echo "oauth="$OAUTH_URL
