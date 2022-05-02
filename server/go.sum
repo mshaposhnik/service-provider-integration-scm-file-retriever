@@ -1036,6 +1036,8 @@ github.com/mongodb/go-client-mongodb-atlas v0.1.2/go.mod h1:LS8O0YLkA+sbtOb3fZLF
 github.com/montanaflynn/stats v0.0.0-20171201202039-1bf9dbcd8cbe/go.mod h1:wL8QJuTMNUDYhXwkmfOly8iTdp5TEcJFWZD2D7SIkUc=
 github.com/morikuni/aec v1.0.0/go.mod h1:BbKIizmSmc5MMPqRYbxO4ZU0S0+P200+tUnFx7PXmsc=
 github.com/mrunalp/fileutils v0.5.0/go.mod h1:M1WthSahJixYnrXQl/DFQuteStB1weuxD2QJNHXfbSQ=
+github.com/mshaposhnik/service-provider-integration-scm-file-retriever v0.0.0-20220429113239-676312f656db h1:uvtPAzjUOFa6p4Gmr442iOOZ1rhgWOzRsjMkh7UEWP4=
+github.com/mshaposhnik/service-provider-integration-scm-file-retriever v0.0.0-20220429113239-676312f656db/go.mod h1:iaZdJQ396YFtvS6XKsQBUGHTXirShWWM4OOTwbuL/bU=
 github.com/munnerz/goautoneg v0.0.0-20120707110453-a547fc61f48d/go.mod h1:+n7T8mK8HuQTcFwEeznm/DIxMOiR9yIdICNftLE1DvQ=
 github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822/go.mod h1:+n7T8mK8HuQTcFwEeznm/DIxMOiR9yIdICNftLE1DvQ=
 github.com/mwielbut/pointy v1.1.0/go.mod h1:MvvO+uMFj9T5DMda33HlvogsFBX7pWWKAkFIn4teYwY=
@@ -1196,6 +1198,8 @@ github.com/rboyer/safeio v0.2.1/go.mod h1:Cq/cEPK+YXFn622lsQ0K4KsPZSPtaptHHEldsy
 github.com/rcrowley/go-metrics v0.0.0-20181016184325-3113b8401b8a/go.mod h1:bCqnVzQkZxMG4s8nGwiZ5l3QUCyqpo9Y+/ZMZ9VjZe4=
 github.com/redhat-appstudio/service-provider-integration-operator v0.4.3 h1:MxJHRpxL+ZuDwOrqn2mZ4OJm0SkPAM7e1TY4xDJmG1U=
 github.com/redhat-appstudio/service-provider-integration-operator v0.4.3/go.mod h1:S7NKaaZ0rhCrmHGqae9i21ROY23LurTtII3eMKqxjBQ=
+github.com/redhat-appstudio/service-provider-integration-operator v0.4.6 h1:6DKNtsljwzUdaJVdqftJ8XyTBWda1J3OhMBqqDjf3ao=
+github.com/redhat-appstudio/service-provider-integration-operator v0.4.6/go.mod h1:S7NKaaZ0rhCrmHGqae9i21ROY23LurTtII3eMKqxjBQ=
 github.com/redhat-appstudio/service-provider-integration-scm-file-retriever v0.4.3 h1:0hOM7z6/3WvY3YlmnrqtEaGyrx2+CzYQM+UG45dO7EE=
 github.com/redhat-appstudio/service-provider-integration-scm-file-retriever v0.4.3/go.mod h1:hzWm/OOlLXmtF8Qwox3GZlfGJAjVM7KaRkbBjmYAI9k=
 github.com/renier/xmlrpc v0.0.0-20170708154548-ce4a1a486c03/go.mod h1:gRAiPF5C5Nd0eyyRdqIu9qTiFSoZzpTq727b5B8fkkU=
@@ -1277,6 +1281,7 @@ github.com/stretchr/testify v1.5.1/go.mod h1:5W2xD1RspED5o8YsWQXVCued0rvSQ+mT+I5
 github.com/stretchr/testify v1.6.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/stretchr/testify v1.7.0 h1:nwc3DEeHmmLAfoZucVR881uASk0Mfjw8xYJ99tb5CcY=
 github.com/stretchr/testify v1.7.0/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
+github.com/stretchr/testify v1.7.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/subosito/gotenv v1.2.0/go.mod h1:N0PQaV/YGNqwC0u51sEeR/aUtSLEXKX9iv69rRypqCw=
 github.com/syndtr/gocapability v0.0.0-20170704070218-db04d3cc01c8/go.mod h1:hkRG7XYTFWNJGYcbNJQlaLq0fg1yr4J4t/NcTQtrfww=
 github.com/syndtr/gocapability v0.0.0-20180916011248-d98352740cb2/go.mod h1:hkRG7XYTFWNJGYcbNJQlaLq0fg1yr4J4t/NcTQtrfww=
