@@ -3,20 +3,34 @@ set -e
 echo 'Testing SPIAccessTokenBinding'
 
 
-cat <<EOF | kubectl apply -n spi-scm -f -
+cat <<EOF | kubectl apply -n spi-system -f -
 apiVersion: appstudio.redhat.com/v1beta1
 kind: SPIAccessTokenBinding
 metadata:
-  name: acctoken-binding
+  name: read-private-repo-read
 spec:
   permissions:
     required:
       - type: r
-        area: repository
-      - type: w
-        area: repository
-  repoUrl: https://github.com/redhat-appstudio/service-provider-integration-operator
+        area: admin:repo_hook
+  repoUrl: https://github.com/skabashnyuk/some-private-repo
   secret:
-    name: token-secret
+    type: kubernetes.io/basic-auth
+EOF
+
+
+
+cat <<EOF | kubectl apply -n spi-system -f -
+apiVersion: appstudio.redhat.com/v1beta1
+kind: SPIAccessTokenBinding
+metadata:
+  name: read-private-repo-read-write
+spec:
+  permissions:
+    required:
+      - type: rw
+        area: admin:repo_hook
+  repoUrl: https://github.com/skabashnyuk/some-private-repo
+  secret:
     type: kubernetes.io/basic-auth
 EOF

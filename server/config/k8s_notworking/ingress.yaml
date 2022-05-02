@@ -1,7 +1,7 @@
 kind: Ingress
 apiVersion: networking.k8s.io/v1
 metadata:
-  namespace: spi-scm
+  namespace: spi-system
   name: spi-scm-file-retriever-server-ingress
 spec:
   rules:
