@@ -196,7 +196,6 @@ func newSPIATB(tBindingName, namespace, repoUrl string) *v1beta1.SPIAccessTokenB
 						Area: v1beta1.PermissionAreaRepository,
 					},
 				},
-				AdditionalScopes: []string{"api"},
 			},
 			Secret: v1beta1.SecretSpec{
 				Type: corev1.SecretTypeBasicAuth,
