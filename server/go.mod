@@ -48,4 +48,4 @@ require (
 	sigs.k8s.io/yaml v1.2.0 // indirect
 )
 
-replace github.com/redhat-appstudio/service-provider-integration-scm-file-retriever => github.com/mshaposhnik/service-provider-integration-scm-file-retriever v0.0.0-20220502135736-173beffd4966
+replace github.com/redhat-appstudio/service-provider-integration-scm-file-retriever => github.com/mshaposhnik/service-provider-integration-scm-file-retriever v0.0.0-20220502151847-682a3701ff62

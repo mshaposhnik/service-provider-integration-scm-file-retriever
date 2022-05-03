@@ -1038,6 +1038,8 @@ github.com/morikuni/aec v1.0.0/go.mod h1:BbKIizmSmc5MMPqRYbxO4ZU0S0+P200+tUnFx7P
 github.com/mrunalp/fileutils v0.5.0/go.mod h1:M1WthSahJixYnrXQl/DFQuteStB1weuxD2QJNHXfbSQ=
 github.com/mshaposhnik/service-provider-integration-scm-file-retriever v0.0.0-20220502135736-173beffd4966 h1:Dr+Mb+nhqkDICV0ywGx+lzcA0ZBJTuZOXtW2NbYk+/A=
 github.com/mshaposhnik/service-provider-integration-scm-file-retriever v0.0.0-20220502135736-173beffd4966/go.mod h1:VvG20xKCoV4ae/ItEOEWoIiLAI0VsdLPs5eEAYcztbA=
+github.com/mshaposhnik/service-provider-integration-scm-file-retriever v0.0.0-20220502151847-682a3701ff62 h1:qOAutbhZYTytQa2Lzf6cvpbgW+rXvpSuUh5f1pC6XKQ=
+github.com/mshaposhnik/service-provider-integration-scm-file-retriever v0.0.0-20220502151847-682a3701ff62/go.mod h1:VvG20xKCoV4ae/ItEOEWoIiLAI0VsdLPs5eEAYcztbA=
 github.com/munnerz/goautoneg v0.0.0-20120707110453-a547fc61f48d/go.mod h1:+n7T8mK8HuQTcFwEeznm/DIxMOiR9yIdICNftLE1DvQ=
 github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822/go.mod h1:+n7T8mK8HuQTcFwEeznm/DIxMOiR9yIdICNftLE1DvQ=
 github.com/mwielbut/pointy v1.1.0/go.mod h1:MvvO+uMFj9T5DMda33HlvogsFBX7pWWKAkFIn4teYwY=

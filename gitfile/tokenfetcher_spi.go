@@ -145,6 +145,12 @@ func (s *SpiTokenFetcher) BuildHeader(ctx context.Context, namespace, repoUrl st
 		if err != nil {
 			zap.L().Error("Error reading TB item:", zap.Error(err))
 		}
+		errorMsg := readBinding.Status.ErrorMessage
+		if errorMsg != "" {
+			return nil, fmt.Errorf("There is a problem in matching the token. Usually, that can be related to unauthorized OAuth application in the requested repository,"+
+				"mismatch of scopes set, or other error. Message from operator: %s ", errorMsg)
+		}
+
 		secretName = readBinding.Status.SyncedObjectRef.Name
 		if secretName != "" {
 			break
