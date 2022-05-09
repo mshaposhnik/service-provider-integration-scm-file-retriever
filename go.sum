@@ -1191,8 +1191,8 @@ github.com/prometheus/procfs v0.6.0/go.mod h1:cz+aTbrPOrUb4q7XlbU9ygM+/jj0fzG6c1
 github.com/prometheus/tsdb v0.7.1/go.mod h1:qhTCs0VvXwvX/y3TZrWD7rabWM+ijKTux40TwIPHuXU=
 github.com/rboyer/safeio v0.2.1/go.mod h1:Cq/cEPK+YXFn622lsQ0K4KsPZSPtaptHHEldsy7Fmig=
 github.com/rcrowley/go-metrics v0.0.0-20181016184325-3113b8401b8a/go.mod h1:bCqnVzQkZxMG4s8nGwiZ5l3QUCyqpo9Y+/ZMZ9VjZe4=
-github.com/redhat-appstudio/service-provider-integration-operator v0.4.6 h1:6DKNtsljwzUdaJVdqftJ8XyTBWda1J3OhMBqqDjf3ao=
-github.com/redhat-appstudio/service-provider-integration-operator v0.4.6/go.mod h1:S7NKaaZ0rhCrmHGqae9i21ROY23LurTtII3eMKqxjBQ=
+github.com/redhat-appstudio/service-provider-integration-operator v0.5.0 h1:rE/PI3/jXpr7uteE0x/USrBRjrLPD6MCQDcsnXTiFtU=
+github.com/redhat-appstudio/service-provider-integration-operator v0.5.0/go.mod h1:S7NKaaZ0rhCrmHGqae9i21ROY23LurTtII3eMKqxjBQ=
 github.com/renier/xmlrpc v0.0.0-20170708154548-ce4a1a486c03/go.mod h1:gRAiPF5C5Nd0eyyRdqIu9qTiFSoZzpTq727b5B8fkkU=
 github.com/rogpeppe/fastuuid v0.0.0-20150106093220-6724a57986af/go.mod h1:XWv6SoW27p1b0cqNHllgS5HIMJraePCO15w5zCzIWYg=
 github.com/rogpeppe/fastuuid v1.2.0/go.mod h1:jVj6XXZzXRy/MSR5jhDC/2q6DgLz+nrA6LYCDYWNEvQ=
