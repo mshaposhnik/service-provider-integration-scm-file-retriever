@@ -4,7 +4,7 @@ go 1.17
 
 require (
 	github.com/imroc/req v0.3.2
-	github.com/redhat-appstudio/service-provider-integration-operator v0.4.6
+	github.com/redhat-appstudio/service-provider-integration-operator v0.5.4
 	github.com/stretchr/testify v1.7.1
 	go.uber.org/zap v1.21.0
 	k8s.io/api v0.22.3
@@ -20,7 +20,7 @@ require (
 	github.com/go-logr/logr v0.4.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
-	github.com/google/go-cmp v0.5.6 // indirect
+	github.com/google/go-cmp v0.5.7 // indirect
 	github.com/google/gofuzz v1.1.0 // indirect
 	github.com/googleapis/gnostic v0.5.5 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
